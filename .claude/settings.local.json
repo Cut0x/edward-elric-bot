@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(sed -i \"s|appUrl\\('/card?id=|appUrl\\('/card.php?id=|g\" \"C:/xampp/htdocs/edward-elric-bot/public/user.php\" \"C:/xampp/htdocs/edward-elric-bot/public/cards.php\" \"C:/xampp/htdocs/edward-elric-bot/public/collection.php\")",
+      "Bash(sed -i \"s|appUrl\\('/user?id=|appUrl\\('/user.php?id=|g\" \"C:/xampp/htdocs/edward-elric-bot/public/creators.php\" \"C:/xampp/htdocs/edward-elric-bot/public/collection.php\" \"C:/xampp/htdocs/edward-elric-bot/public/includes/header.php\")"
+    ]
+  }
+}

@@ -5,6 +5,8 @@ $botName   = getBotName();
 <footer class="footer">
     <div class="container">
         <div class="footer-grid">
+
+            <!-- Brand -->
             <div>
                 <div class="footer-brand">
                     <img class="footer-bot-avatar"
@@ -17,22 +19,34 @@ $botName   = getBotName();
                     Un jeu de collection de cartes gratuit dans l'univers de Fullmetal Alchemist.
                     Rollez chaque jour, montez en niveau et complétez votre collection !
                 </p>
+                <div class="footer-commands" style="margin-top:16px;">
+                    <div class="footer-commands-label">Commandes Discord</div>
+                    <div class="footer-commands-list">
+                        <?php foreach (['/roll', '/reroll', '/collection', '/profil', '/top', '/carte', '/aide'] as $cmd): ?>
+                            <code class="cmd"><?= $cmd ?></code>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
             </div>
 
+            <!-- Navigation -->
             <div>
                 <div class="footer-heading">Navigation</div>
                 <ul class="footer-links">
                     <li><a href="<?= appUrl('/') ?>"><i class="bi bi-house"></i> Accueil</a></li>
                     <li><a href="<?= appUrl('/cards') ?>"><i class="bi bi-collection"></i> Toutes les cartes</a></li>
+                    <li><a href="<?= appUrl('/creators') ?>"><i class="bi bi-brush"></i> Artistes &amp; Créateurs</a></li>
                     <li><a href="<?= appUrl('/leaderboard') ?>"><i class="bi bi-trophy"></i> Classement</a></li>
                     <li><a href="<?= appUrl('/users') ?>"><i class="bi bi-people"></i> Joueurs</a></li>
                     <li><a href="<?= appUrl('/community') ?>"><i class="bi bi-chat-square-heart"></i> Forum communautaire</a></li>
                     <?php if (isLoggedIn()): ?>
                         <li><a href="<?= appUrl('/collection') ?>"><i class="bi bi-grid-3x3-gap"></i> Ma collection</a></li>
+                        <li><a href="<?= appUrl('/roll') ?>"><i class="bi bi-dice-5"></i> Roll du jour</a></li>
                     <?php endif; ?>
                 </ul>
             </div>
 
+            <!-- Bot -->
             <div>
                 <div class="footer-heading">Bot Discord</div>
                 <ul class="footer-links">
@@ -40,19 +54,14 @@ $botName   = getBotName();
                     <li><a href="#"><i class="bi bi-question-circle"></i> Aide (/aide)</a></li>
                     <li><a href="#"><i class="bi bi-github"></i> Code source</a></li>
                 </ul>
-                <div style="margin-top:14px;padding:10px 12px;background:var(--bg-500);border-radius:var(--radius-md);border:1px solid var(--b-1);">
-                    <div style="font-size:11px;color:var(--text-5);margin-bottom:6px;">COMMANDES</div>
-                    <?php foreach (['/roll', '/reroll', '/collection', '/profil', '/top'] as $cmd): ?>
-                        <span style="display:inline-block;margin:2px 2px;"><code class="cmd"><?= $cmd ?></code></span>
-                    <?php endforeach; ?>
-                </div>
             </div>
 
+            <!-- Légal -->
             <div>
                 <div class="footer-heading">Légal</div>
                 <ul class="footer-links">
                     <li><a href="<?= appUrl('/terms') ?>"><i class="bi bi-file-earmark-text"></i> Conditions d'utilisation</a></li>
-                    <li><a href="<?= appUrl('/privacy') ?>"><i class="bi bi-shield-lock"></i> Politique de confidentialité</a></li>
+                    <li><a href="<?= appUrl('/privacy') ?>"><i class="bi bi-shield-lock"></i> Confidentialité</a></li>
                 </ul>
             </div>
         </div>
@@ -61,9 +70,7 @@ $botName   = getBotName();
             <p class="footer-copy">
                 &copy; <?= date('Y') ?> <?= h($botName) ?> — Projet non-officiel, non affilié à Arakawa Hiromu.
             </p>
-            <p class="footer-quote">
-                « Rien ne se crée sans sacrifice. »
-            </p>
+            <p class="footer-quote">« Rien ne se crée sans sacrifice. »</p>
         </div>
     </div>
 </footer>

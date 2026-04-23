@@ -1,5 +1,5 @@
 <?php
-define('PAGE_TITLE', 'Cartes');
+define('PAGE_TITLE', 'Toutes les cartes');
 require_once __DIR__ . '/includes/config.php';
 require_once __DIR__ . '/includes/db.php';
 require_once __DIR__ . '/includes/auth.php';
@@ -13,7 +13,6 @@ $filters = [
 
 $data     = getAllCards($filters, $page);
 $ownedIds = [];
-
 if (isLoggedIn()) {
     $rows     = dbQuery('SELECT card_id FROM user_cards WHERE user_id = ?', [$_SESSION['user_id']]);
     $ownedIds = array_column($rows, 'card_id');
@@ -24,22 +23,29 @@ require_once __DIR__ . '/includes/header.php';
 
 <div class="container page-content">
 
-    <div class="section-header">
+    <!-- Page Header -->
+    <div class="section-header" style="margin-bottom:20px;">
         <div>
             <div class="section-title"><i class="bi bi-collection-fill"></i> Collection complète</div>
             <div class="section-meta">
-                <?= $data['total'] ?> carte<?= $data['total'] > 1 ? 's' : '' ?> disponibles
+                <?= number_format($data['total']) ?> carte<?= $data['total'] > 1 ? 's' : '' ?> disponibles
                 <?php if (isLoggedIn()): ?>
-                    &nbsp;·&nbsp; Vous en possédez <strong style="color:var(--gold-4);"><?= count($ownedIds) ?></strong>
+                    &nbsp;·&nbsp;
+                    Vous en possédez <strong style="color:var(--gold-4);"><?= count($ownedIds) ?></strong>
+                    (<?= $data['total'] > 0 ? round(count($ownedIds) / $data['total'] * 100) : 0 ?>%)
                 <?php endif; ?>
             </div>
         </div>
+        <?php if (!isLoggedIn()): ?>
+            <a href="<?= appUrl('/login') ?>" class="btn-discord btn-sm">
+                <i class="bi bi-discord"></i> Connexion pour voir ta progression
+            </a>
+        <?php endif; ?>
     </div>
 
     <!-- Toolbar -->
     <form method="GET" id="filter-form">
         <div class="toolbar">
-            <!-- Search -->
             <div class="search-wrap">
                 <i class="bi bi-search"></i>
                 <input type="text" class="search-input" id="search-live" name="search"
@@ -55,6 +61,7 @@ require_once __DIR__ . '/includes/header.php';
 
             <a href="?search=<?= urlencode($filters['search']) ?>"
                class="filter-chip <?= $filters['rarity'] === '' ? 'active' : '' ?>">Toutes</a>
+
             <?php foreach (RARITIES as $key => $r): ?>
                 <a href="?rarity=<?= urlencode($key) ?>&search=<?= urlencode($filters['search']) ?>"
                    class="filter-chip <?= $filters['rarity'] === $key ? 'active' : '' ?>"
@@ -81,7 +88,7 @@ require_once __DIR__ . '/includes/header.php';
                     <?php endif; ?>
                 </p>
                 <?php if ($filters['search'] || $filters['rarity']): ?>
-                    <a href="<?= APP_URL ?>/cards.php" class="btn-secondary btn-sm">
+                    <a href="<?= appUrl('/cards') ?>" class="btn-secondary btn-sm">
                         <i class="bi bi-x-circle"></i> Effacer les filtres
                     </a>
                 <?php endif; ?>
@@ -92,7 +99,7 @@ require_once __DIR__ . '/includes/header.php';
             <?php foreach ($data['cards'] as $card):
                 $isOwned = isLoggedIn() && in_array((int)$card['id'], $ownedIds, true);
             ?>
-                <a href="<?= APP_URL ?>/card.php?id=<?= $card['id'] ?>"
+                <a href="<?= appUrl('/card.php?id=' . $card['id']) ?>"
                    class="card-item rarity-<?= h($card['rarity']) ?> <?= isLoggedIn() && !$isOwned ? 'is-locked' : '' ?>">
                     <div class="card-image-wrap">
                         <?php if ($card['image_file']): ?>
@@ -125,7 +132,7 @@ require_once __DIR__ . '/includes/header.php';
                         <i class="bi bi-chevron-left"></i>
                     </a>
                 <?php endif; ?>
-                <?php for ($i = max(1, $page - 3); $i <= min($data['pages'], $page + 3); $i++): ?>
+                <?php for ($i = max(1, $page-3); $i <= min($data['pages'], $page+3); $i++): ?>
                     <a href="?page=<?= $i ?>&rarity=<?= urlencode($filters['rarity']) ?>&search=<?= urlencode($filters['search']) ?>"
                        class="page-btn <?= $i === $page ? 'active' : '' ?>"><?= $i ?></a>
                 <?php endfor; ?>
