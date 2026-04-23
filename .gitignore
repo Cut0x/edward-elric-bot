@@ -1,0 +1,25 @@
+# Environnement
+.env
+
+# Images (images uploadées - à sauvegarder séparément)
+/icons/*
+/badges/*
+/cards/*
+!/cards/.gitkeep
+
+# Autre
+/migrations/*
+
+# Cartes (images uploadées - à sauvegarder séparément)
+
+# Node.js
+node_modules/
+bot/node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db

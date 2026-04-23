@@ -1,0 +1,22 @@
+{
+  "name": "edward-elric-bot",
+  "version": "1.0.0",
+  "description": "Bot Discord de collection de cartes Fullmetal Alchemist",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": ["discord", "bot", "fullmetal", "alchemist", "cards"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "mysql2": "^3.11.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
