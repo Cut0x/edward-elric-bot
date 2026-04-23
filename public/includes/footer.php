@@ -22,13 +22,13 @@ $botName   = getBotName();
             <div>
                 <div class="footer-heading">Navigation</div>
                 <ul class="footer-links">
-                    <li><a href="<?= APP_URL ?>/index.php"><i class="bi bi-house"></i> Accueil</a></li>
-                    <li><a href="<?= APP_URL ?>/cards.php"><i class="bi bi-collection"></i> Toutes les cartes</a></li>
-                    <li><a href="<?= APP_URL ?>/leaderboard.php"><i class="bi bi-trophy"></i> Classement</a></li>
-                    <li><a href="<?= APP_URL ?>/users.php"><i class="bi bi-people"></i> Joueurs</a></li>
-                    <li><a href="<?= APP_URL ?>/community.php"><i class="bi bi-chat-square-heart"></i> Forum communautaire</a></li>
+                    <li><a href="<?= appUrl('/') ?>"><i class="bi bi-house"></i> Accueil</a></li>
+                    <li><a href="<?= appUrl('/cards') ?>"><i class="bi bi-collection"></i> Toutes les cartes</a></li>
+                    <li><a href="<?= appUrl('/leaderboard') ?>"><i class="bi bi-trophy"></i> Classement</a></li>
+                    <li><a href="<?= appUrl('/users') ?>"><i class="bi bi-people"></i> Joueurs</a></li>
+                    <li><a href="<?= appUrl('/community') ?>"><i class="bi bi-chat-square-heart"></i> Forum communautaire</a></li>
                     <?php if (isLoggedIn()): ?>
-                        <li><a href="<?= APP_URL ?>/collection.php"><i class="bi bi-grid-3x3-gap"></i> Ma collection</a></li>
+                        <li><a href="<?= appUrl('/collection') ?>"><i class="bi bi-grid-3x3-gap"></i> Ma collection</a></li>
                     <?php endif; ?>
                 </ul>
             </div>
@@ -51,8 +51,8 @@ $botName   = getBotName();
             <div>
                 <div class="footer-heading">Légal</div>
                 <ul class="footer-links">
-                    <li><a href="<?= APP_URL ?>/terms.php"><i class="bi bi-file-earmark-text"></i> Conditions d'utilisation</a></li>
-                    <li><a href="<?= APP_URL ?>/privacy.php"><i class="bi bi-shield-lock"></i> Politique de confidentialité</a></li>
+                    <li><a href="<?= appUrl('/terms') ?>"><i class="bi bi-file-earmark-text"></i> Conditions d'utilisation</a></li>
+                    <li><a href="<?= appUrl('/privacy') ?>"><i class="bi bi-shield-lock"></i> Politique de confidentialité</a></li>
                 </ul>
             </div>
         </div>
@@ -69,6 +69,7 @@ $botName   = getBotName();
 </footer>
 
 <div class="toast-container"></div>
-<script src="<?= APP_URL ?>/assets/js/main.js"></script>
+<script src="<?= appUrl('/assets/js/main.js') ?>"></script>
 </body>
 </html>
+<?php if (defined('APP_URL_REWRITE_BUFFER') && ob_get_level() > 0) ob_end_flush(); ?>

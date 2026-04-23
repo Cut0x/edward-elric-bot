@@ -6,7 +6,7 @@ const { messageComponents } = require('../utils/components');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('aide')
-        .setDescription(`${EMOJIS.info} Aide et liste des commandes du bot`),
+        .setDescription('Aide et liste des commandes du bot'),
 
     async execute(interaction) {
         const payload = messageComponents([

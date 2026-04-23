@@ -2,16 +2,28 @@
   "name": "edward-elric-bot",
   "version": "1.0.0",
   "description": "Bot Discord de collection de cartes Fullmetal Alchemist",
-  "main": "index.js",
+  "main": "bots/edward/index.js",
   "scripts": {
-    "start": "node index.js",
-    "deploy": "node deploy-commands.js",
-    "dev": "nodemon index.js"
+    "start": "npm run start:edward",
+    "start:edward": "node bots/edward/index.js",
+    "start:alphonse": "node bots/alphonse/index.js",
+    "start:bots": "node bots/start-bots.js",
+    "deploy": "npm run deploy:edward",
+    "deploy:edward": "node bots/edward/deploy-commands.js",
+    "deploy:edward:global": "node bots/edward/deploy-commands.js --global",
+    "dev": "nodemon bots/edward/index.js"
   },
-  "keywords": ["discord", "bot", "fullmetal", "alchemist", "cards"],
+  "keywords": [
+    "discord",
+    "bot",
+    "fullmetal",
+    "alchemist",
+    "cards"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.99",
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5",
     "mysql2": "^3.11.3"

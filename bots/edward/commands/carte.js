@@ -8,7 +8,7 @@ const { messageComponents } = require('../utils/components');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('carte')
-        .setDescription(`${EMOJIS.search} Rechercher une carte par son nom`)
+        .setDescription('Rechercher une carte par son nom')
         .addStringOption(opt =>
             opt.setName('nom')
                .setDescription('Nom de la carte ou du personnage')

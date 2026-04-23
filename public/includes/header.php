@@ -3,6 +3,11 @@ if (!defined('PAGE_TITLE')) define('PAGE_TITLE', 'Accueil');
 
 require_once __DIR__ . '/bot_api.php';
 
+if (!defined('APP_URL_REWRITE_BUFFER')) {
+    define('APP_URL_REWRITE_BUFFER', true);
+    ob_start('rewriteAppUrls');
+}
+
 $botAvatar = getBotAvatarUrl(64);
 $botName   = getBotName();
 
@@ -43,18 +48,18 @@ function levelBadgeClass(int $level): string {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cinzel:wght@700;900&family=JetBrains+Mono:wght@400;600&display=swap">
     <!-- CSS principal -->
-    <link rel="stylesheet" href="<?= APP_URL ?>/assets/css/style.css">
+    <link rel="stylesheet" href="<?= appUrl('/assets/css/style.css') ?>">
 </head>
 <body>
 
 <nav class="navbar">
     <div class="navbar-inner">
         <!-- Brand -->
-        <a class="navbar-brand" href="<?= APP_URL ?>/index.php">
+        <a class="navbar-brand" href="<?= appUrl('/') ?>">
             <img class="navbar-bot-avatar"
                  src="<?= h($botAvatar) ?>"
                  alt="<?= h($botName) ?>"
-                 onerror="this.src='<?= APP_URL ?>/assets/imgs/banner.gif'">
+                 onerror="this.src='<?= appUrl('/assets/imgs/banner.gif') ?>'">
             <span class="navbar-bot-name"><?= h($botName) ?></span>
         </a>
 
@@ -62,31 +67,31 @@ function levelBadgeClass(int $level): string {
 
         <!-- Links -->
         <div class="navbar-links" id="navbar-links">
-            <a href="<?= APP_URL ?>/index.php" class="nav-link<?= navActive('index.php') ?>">
+            <a href="<?= appUrl('/') ?>" class="nav-link<?= navActive('index.php') ?>">
                 <i class="bi bi-house-fill"></i> Accueil
             </a>
-            <a href="<?= APP_URL ?>/cards.php" class="nav-link<?= navActive('cards.php') ?>">
+            <a href="<?= appUrl('/cards') ?>" class="nav-link<?= navActive('cards.php') ?>">
                 <i class="bi bi-collection-fill"></i> Cartes
             </a>
-            <a href="<?= APP_URL ?>/leaderboard.php" class="nav-link<?= navActive('leaderboard.php') ?>">
+            <a href="<?= appUrl('/leaderboard') ?>" class="nav-link<?= navActive('leaderboard.php') ?>">
                 <i class="bi bi-trophy-fill"></i> Classement
             </a>
-            <a href="<?= APP_URL ?>/users.php" class="nav-link<?= navActive('users.php') ?>">
+            <a href="<?= appUrl('/users') ?>" class="nav-link<?= navActive('users.php') ?>">
                 <i class="bi bi-people-fill"></i> Joueurs
             </a>
-            <a href="<?= APP_URL ?>/community.php" class="nav-link<?= navActive('community.php') ?>">
+            <a href="<?= appUrl('/community') ?>" class="nav-link<?= navActive('community.php') ?>">
                 <i class="bi bi-chat-square-heart-fill"></i> Forum
             </a>
             <?php if (isLoggedIn()): ?>
-                <a href="<?= APP_URL ?>/roll.php" class="nav-link<?= navActive('roll.php') ?>">
+                <a href="<?= appUrl('/roll') ?>" class="nav-link<?= navActive('roll.php') ?>">
                     <i class="bi bi-dice-5-fill"></i> Roll
                 </a>
-                <a href="<?= APP_URL ?>/collection.php" class="nav-link<?= navActive('collection.php') ?>">
+                <a href="<?= appUrl('/collection') ?>" class="nav-link<?= navActive('collection.php') ?>">
                     <i class="bi bi-grid-3x3-gap-fill"></i> Collection
                 </a>
             <?php endif; ?>
             <?php if (isAdmin()): ?>
-                <a href="<?= APP_URL ?>/admin/index.php" class="nav-link<?= adminActive() ?>" style="color:#e3a321;">
+                <a href="<?= appUrl('/admin/index') ?>" class="nav-link<?= adminActive() ?>" style="color:#e3a321;">
                     <i class="bi bi-shield-lock-fill"></i> Admin
                 </a>
             <?php endif; ?>
@@ -99,7 +104,7 @@ function levelBadgeClass(int $level): string {
                 $userLevel = xpToLevel($userXp);
                 $lvClass   = levelBadgeClass($userLevel);
             ?>
-                <a href="<?= APP_URL ?>/collection.php" class="user-pill" title="Ma collection">
+                <a href="<?= appUrl('/collection') ?>" class="user-pill" title="Ma collection">
                     <img class="user-pill-avatar"
                          src="<?= h(getAvatarUrl($_SESSION['user_id'], $_SESSION['avatar'], 64)) ?>"
                          alt=""
@@ -107,11 +112,11 @@ function levelBadgeClass(int $level): string {
                     <span class="user-pill-name"><?= h($_SESSION['global_name'] ?? $_SESSION['username']) ?></span>
                     <span class="level-badge <?= $lvClass ?>">Nv.<?= $userLevel ?></span>
                 </a>
-                <a href="<?= APP_URL ?>/logout.php" class="btn-outline-sm" title="Déconnexion">
+                <a href="<?= appUrl('/logout') ?>" class="btn-outline-sm" title="Déconnexion">
                     <i class="bi bi-box-arrow-right"></i>
                 </a>
             <?php else: ?>
-                <a href="<?= APP_URL ?>/login.php" class="btn-discord">
+                <a href="<?= appUrl('/login') ?>" class="btn-discord">
                     <i class="bi bi-discord"></i> Connexion
                 </a>
             <?php endif; ?>

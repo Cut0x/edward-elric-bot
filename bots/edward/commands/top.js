@@ -9,7 +9,7 @@ const MEDALS = ['🥇', '🥈', '🥉'];
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('top')
-        .setDescription(`${EMOJIS.rank} Voir le classement des meilleurs collectionneurs`),
+        .setDescription('Voir le classement des meilleurs collectionneurs'),
 
     async execute(interaction) {
         await interaction.deferReply();

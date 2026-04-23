@@ -1,0 +1,39 @@
+Options -MultiViews
+RewriteEngine On
+RewriteBase /edward-elric-bot/public/
+
+# Canonical pretty URLs for ID based pages.
+RewriteCond %{THE_REQUEST} \s/+(.*/)?user\.php\?id=([0-9]+) [NC]
+RewriteRule ^user\.php$ user/%2? [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+(.*/)?card\.php\?id=([0-9]+) [NC]
+RewriteRule ^card\.php$ card/%2? [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+(.*/)?proposal\.php\?id=([0-9]+) [NC]
+RewriteRule ^proposal\.php$ proposal/%2? [R=301,L]
+
+# Hide .php for direct requests while preserving query strings.
+RewriteCond %{THE_REQUEST} \s/+(.*/)?index(?:\.php)?[?\s] [NC]
+RewriteRule ^index(?:\.php)?$ ./ [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+(.*/)?([A-Za-z0-9_-]+)\.php[?\s] [NC]
+RewriteRule ^([A-Za-z0-9_-]+)\.php$ $1 [R=301,L]
+
+RewriteCond %{THE_REQUEST} \s/+(.*/)?admin/([A-Za-z0-9_-]+)\.php[?\s] [NC]
+RewriteRule ^admin/([A-Za-z0-9_-]+)\.php$ admin/$1 [R=301,L]
+
+# Pretty route rewrites.
+RewriteRule ^user/([0-9]+)$ user.php?id=$1 [L,QSA]
+RewriteRule ^card/([0-9]+)$ card.php?id=$1 [L,QSA]
+RewriteRule ^proposal/([0-9]+)$ proposal.php?id=$1 [L,QSA]
+
+RewriteRule ^index$ ./ [R=301,L]
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+)$ $1.php [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^$ index.php [L]

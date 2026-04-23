@@ -4,8 +4,32 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/db.php';
 require_once __DIR__ . '/bot_api.php';
 
+function currentSessionUserIsBanned(): bool {
+    if (empty($_SESSION['user_id'])) return false;
+    try {
+        $row = dbQueryOne('SELECT is_banned FROM users WHERE id = ?', [$_SESSION['user_id']]);
+        return !empty($row['is_banned']);
+    } catch (Exception) {
+        return false;
+    }
+}
+
+function denyBannedAccess(): void {
+    session_destroy();
+    http_response_code(403);
+    header('Content-Type: text/html; charset=utf-8');
+    echo '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Accès suspendu</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#1e1f22;color:#f2f3f5;font-family:Arial,sans-serif}.box{max-width:520px;padding:28px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#2b2d31}h1{margin:0 0 10px;font-size:24px}p{margin:0;color:#b5bac1;line-height:1.6}</style></head><body><main class="box"><h1>Accès suspendu</h1><p>Votre compte est banni. L’accès au site et aux commandes du bot Edward est désactivé.</p></main></body></html>';
+    exit;
+}
+
+if (currentSessionUserIsBanned()) {
+    denyBannedAccess();
+}
+
 function isLoggedIn(): bool {
-    return !empty($_SESSION['user_id']);
+    if (empty($_SESSION['user_id'])) return false;
+    if (currentSessionUserIsBanned()) denyBannedAccess();
+    return true;
 }
 
 function isAdmin(): bool {
@@ -113,7 +137,10 @@ function loginUser(array $discordUser): void {
     $avatar      = $discordUser['avatar'] ?? null;
     $banner      = $discordUser['banner'] ?? null;
 
-    $existing = dbQueryOne('SELECT id FROM users WHERE id = ?', [$id]);
+    $existing = dbQueryOne('SELECT id, is_banned FROM users WHERE id = ?', [$id]);
+    if (!empty($existing['is_banned'])) {
+        throw new RuntimeException('Compte banni.');
+    }
     if ($existing) {
         dbExecute(
             'UPDATE users SET username = ?, global_name = ?, avatar = ?, banner = ?, is_owner = IF(id = ?, 1, is_owner), updated_at = NOW() WHERE id = ?',

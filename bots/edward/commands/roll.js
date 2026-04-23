@@ -9,6 +9,7 @@ const {
 const { rollCard, RARITIES, MAX_DAILY_ROLLS } = require('../utils/cards');
 const EMOJIS = require('../config/emojis');
 const { messageComponents } = require('../utils/components');
+const { sendEdwardLog } = require('../utils/logs');
 
 function buildComponents(text, imageFile = null) {
     const container = new ContainerBuilder()
@@ -30,7 +31,7 @@ function buildComponents(text, imageFile = null) {
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('roll')
-        .setDescription(`${EMOJIS.card} Tirer une carte aléatoire depuis la collection`),
+        .setDescription('Tirer une carte aléatoire depuis la collection'),
 
     async execute(interaction) {
         await interaction.deferReply();
@@ -70,6 +71,19 @@ module.exports = {
                 text,
                 card.image_file ? { path: imagePath, name: card.image_file } : null
             ));
+
+            if (card.rarity === 'legendaire') {
+                const appUrl = (process.env.APP_URL || '').replace(/\/$/, '');
+                const cardsUrl = (process.env.CARDS_URL || '').replace(/\/$/, '');
+                const imageUrl = cardsUrl && card.image_file ? `${cardsUrl}/${encodeURIComponent(card.image_file)}` : null;
+                await sendEdwardLog(
+                    interaction.client,
+                    'Roll légendaire',
+                    `${interaction.user.tag} vient de roll **${card.name}**.`,
+                    appUrl ? `${appUrl}/card.php?id=${card.id}` : null,
+                    imageUrl
+                );
+            }
 
         } catch (error) {
             console.error('[/roll] Erreur :', error);

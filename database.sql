@@ -1,6 +1,6 @@
 -- =============================================
 --   EDWARD ELRIC BOT - Schéma base de données
---   Version 1.3.0
+--   Version 1.6.0
 -- =============================================
 
 CREATE DATABASE IF NOT EXISTS `edwardbot`
@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `banner`           VARCHAR(255)     DEFAULT NULL,
     `is_owner`         TINYINT(1)       NOT NULL DEFAULT 0,
     `is_card_author`   TINYINT(1)       NOT NULL DEFAULT 0,
+    `is_banned`        TINYINT(1)       NOT NULL DEFAULT 0,
     `rolls_remaining`  INT              NOT NULL DEFAULT 10,
     `last_roll_reset`  DATE             DEFAULT NULL,
     `total_rolls`      INT              NOT NULL DEFAULT 0,
@@ -28,7 +29,8 @@ CREATE TABLE IF NOT EXISTS `users` (
     PRIMARY KEY (`id`),
     INDEX `idx_xp` (`xp`),
     INDEX `idx_level` (`level`),
-    INDEX `idx_roles` (`is_owner`, `is_card_author`)
+    INDEX `idx_roles` (`is_owner`, `is_card_author`),
+    INDEX `idx_banned` (`is_banned`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Propositions communautaires de cartes
@@ -62,13 +64,33 @@ CREATE TABLE IF NOT EXISTS `card_proposal_likes` (
 CREATE TABLE IF NOT EXISTS `card_proposal_replies` (
     `id`          INT             NOT NULL AUTO_INCREMENT,
     `proposal_id` INT             NOT NULL,
+    `parent_id`   INT             DEFAULT NULL,
     `user_id`     BIGINT UNSIGNED NOT NULL,
     `content`     TEXT            NOT NULL,
     `created_at`  TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     INDEX `idx_cpr_proposal` (`proposal_id`, `created_at`),
+    INDEX `idx_cpr_parent` (`parent_id`),
     CONSTRAINT `fk_cpr_proposal` FOREIGN KEY (`proposal_id`) REFERENCES `card_proposals` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_cpr_parent` FOREIGN KEY (`parent_id`) REFERENCES `card_proposal_replies` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_cpr_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- File d'activité du site pour le bot Alphonse
+CREATE TABLE IF NOT EXISTS `activity_events` (
+    `id`           INT          NOT NULL AUTO_INCREMENT,
+    `type`         VARCHAR(64)  NOT NULL,
+    `user_id`      BIGINT UNSIGNED DEFAULT NULL,
+    `title`        VARCHAR(255) NOT NULL,
+    `message`      TEXT         NOT NULL,
+    `url`          VARCHAR(500) DEFAULT NULL,
+    `metadata_json` JSON        DEFAULT NULL,
+    `created_at`   TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `delivered_at` TIMESTAMP    NULL DEFAULT NULL,
+    PRIMARY KEY (`id`),
+    INDEX `idx_activity_delivery` (`delivered_at`, `created_at`),
+    INDEX `idx_activity_type` (`type`),
+    CONSTRAINT `fk_activity_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Cartes disponibles

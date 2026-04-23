@@ -1,14 +1,15 @@
 <?php
 
 function fetchBotInfo(): array {
-    $cacheFile = sys_get_temp_dir() . '/edwardbot_info.json';
+    $token = EDWARD_BOT_TOKEN;
+    $cacheKey = $token ? substr(sha1($token), 0, 12) : 'fallback';
+    $cacheFile = sys_get_temp_dir() . '/edwardbot_info_' . $cacheKey . '.json';
 
     if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 3600) {
         $cached = json_decode(file_get_contents($cacheFile), true);
         if (!empty($cached['id'])) return $cached;
     }
 
-    $token = DISCORD_BOT_TOKEN;
     if (!$token) {
         return ['username' => 'Edward Elric Bot', 'id' => '', 'avatar' => null, 'global_name' => null];
     }
@@ -68,14 +69,14 @@ function fetchDiscordUserById(string $userId): ?array {
         if (!empty($cached['id'])) return $cached;
     }
 
-    if (!DISCORD_BOT_TOKEN) return null;
+    if (!EDWARD_BOT_TOKEN) return null;
 
     $ch = curl_init('https://discord.com/api/v10/users/' . rawurlencode($userId));
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 5,
         CURLOPT_HTTPHEADER     => [
-            'Authorization: Bot ' . DISCORD_BOT_TOKEN,
+            'Authorization: Bot ' . EDWARD_BOT_TOKEN,
             'Content-Type: application/json',
             'User-Agent: EdwardElricBot (localhost, 1.0)',
         ],

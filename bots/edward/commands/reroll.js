@@ -7,7 +7,7 @@ const { messageComponents } = require('../utils/components');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('reroll')
-        .setDescription(`${EMOJIS.reroll} Voir vos rolls quotidiens restants`),
+        .setDescription('Voir vos rolls quotidiens restants'),
 
     async execute(interaction) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });

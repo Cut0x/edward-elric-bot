@@ -8,7 +8,11 @@
 !/cards/.gitkeep
 
 # Autre
-/migrations/*
+/public/uploads/*
+!/public/uploads/.gitkeep
+!/public/uploads/proposals/
+/public/uploads/proposals/*
+!/public/uploads/proposals/.gitkeep
 
 # Cartes (images uploadées - à sauvegarder séparément)
 

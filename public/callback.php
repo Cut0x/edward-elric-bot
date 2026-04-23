@@ -32,6 +32,8 @@ if (isset($_GET['error'])) {
                 loginUser($discordUser);
                 header('Location: ' . APP_URL . '/index.php?message=welcome');
                 exit;
+            } catch (RuntimeException $e) {
+                $error = $e->getMessage();
             } catch (Exception $e) {
                 $error = 'Erreur lors de la connexion. Réessayez.';
             }

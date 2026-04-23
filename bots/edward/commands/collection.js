@@ -7,7 +7,7 @@ const { messageComponents } = require('../utils/components');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('collection')
-        .setDescription(`${EMOJIS.collection} Voir votre collection de cartes`)
+        .setDescription('Voir votre collection de cartes')
         .addStringOption(opt =>
             opt.setName('rareté')
                .setDescription('Filtrer par rareté')

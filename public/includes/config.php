@@ -27,7 +27,8 @@ function env(string $key, mixed $default = ''): mixed {
 define('DISCORD_CLIENT_ID',     env('DISCORD_CLIENT_ID'));
 define('DISCORD_CLIENT_SECRET', env('DISCORD_CLIENT_SECRET'));
 define('DISCORD_REDIRECT_URI',  env('DISCORD_REDIRECT_URI', 'http://localhost/edward-elric-bot/public/callback.php'));
-define('DISCORD_BOT_TOKEN',     env('DISCORD_BOT_TOKEN'));
+define('EDWARD_BOT_TOKEN',      env('EDWARD_BOT_TOKEN', env('DISCORD_BOT_TOKEN')));
+define('DISCORD_BOT_TOKEN',     EDWARD_BOT_TOKEN);
 
 // Application
 define('APP_URL',    env('APP_URL',    'http://localhost/edward-elric-bot/public'));
@@ -38,6 +39,60 @@ define('ICONS_URL',  rtrim(str_replace('/public', '', APP_URL), '/') . '/icons')
 define('BADGES_URL', rtrim(str_replace('/public', '', APP_URL), '/') . '/badges');
 define('PROPOSALS_DIR', __DIR__ . '/../uploads/proposals/');
 define('PROPOSALS_URL', rtrim(APP_URL, '/') . '/uploads/proposals');
+
+function appPrettyPath(string $path): string {
+    $path = trim($path);
+    if ($path === '') return '';
+    if (preg_match('#^https?://#i', $path)) {
+        $base = rtrim(APP_URL, '/');
+        if (!str_starts_with($path, $base . '/')) return $path;
+        $path = substr($path, strlen($base));
+    }
+
+    $path = '/' . ltrim($path, '/');
+    [$cleanPath, $query] = array_pad(explode('?', $path, 2), 2, '');
+    parse_str($query, $params);
+
+    if (in_array($cleanPath, ['/user.php', '/card.php', '/proposal.php'], true) && !empty($params['id']) && ctype_digit((string)$params['id'])) {
+        $name = substr($cleanPath, 1, -4);
+        $id = (string)$params['id'];
+        unset($params['id']);
+        $path = '/' . $name . '/' . $id;
+        $query = http_build_query($params);
+        return $path . ($query ? '?' . $query : '');
+    }
+
+    if ($cleanPath === '/index' || $cleanPath === '/index.php') {
+        return '/' . ($query ? '?' . $query : '');
+    }
+
+    $cleanPath = preg_replace('#\.php$#', '', $cleanPath);
+    return $cleanPath . ($query ? '?' . $query : '');
+}
+
+function appUrl(string $path = ''): string {
+    return rtrim(APP_URL, '/') . appPrettyPath($path);
+}
+
+function rewriteAppUrls(string $html): string {
+    $base = preg_quote(rtrim(APP_URL, '/'), '#');
+
+    $html = preg_replace_callback(
+        "#{$base}/(user|card|proposal)\.php\?id=([0-9]+)((?:&amp;|&)[^\"'\\s<]*)?#",
+        function ($m) {
+            $extra = $m[3] ?? '';
+            $extra = $extra ? str_replace('&amp;', '&', preg_replace('/^(?:&amp;|&)/', '', $extra, 1)) : '';
+            return rtrim(APP_URL, '/') . '/' . $m[1] . '/' . $m[2] . ($extra ? '?' . $extra : '');
+        },
+        $html
+    );
+
+    $html = preg_replace("#{$base}/admin/([A-Za-z0-9_-]+)\.php#", rtrim(APP_URL, '/') . '/admin/$1', $html);
+    $html = preg_replace("#{$base}/([A-Za-z0-9_-]+)\.php#", rtrim(APP_URL, '/') . '/$1', $html);
+    $html = preg_replace("#{$base}/index(?:\.php)?#", rtrim(APP_URL, '/') . '/', $html);
+
+    return $html;
+}
 
 // Admin
 define('ADMIN_DISCORD_ID', env('ADMIN_DISCORD_ID', '574544938440851466'));

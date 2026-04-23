@@ -620,6 +620,14 @@ h1, h2, h3, h4, h5, h6 {
     transition: transform .35s ease;
 }
 .card-item:hover .card-image-wrap img { transform: scale(1.06); }
+.card-item.is-locked .card-image-wrap img {
+    filter: blur(12px) saturate(.12) brightness(.42);
+    transform: scale(1.08);
+}
+.card-item.is-locked:hover .card-image-wrap img {
+    filter: blur(14px) saturate(.12) brightness(.38);
+    transform: scale(1.1);
+}
 
 .card-no-image {
     width: 100%;
@@ -686,16 +694,16 @@ h1, h2, h3, h4, h5, h6 {
 .card-locked {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,.5);
+    background: rgba(0,0,0,.68);
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-5);
     font-size: 24px;
-    backdrop-filter: blur(1px);
+    backdrop-filter: blur(7px);
     transition: opacity var(--t-normal);
 }
-.card-item:hover .card-locked { opacity: .3; }
+.card-item:hover .card-locked { opacity: .92; }
 
 .card-info {
     padding: 8px 10px 11px;
@@ -2014,6 +2022,57 @@ code.cmd {
 .community-compose { padding: 0; overflow: hidden; }
 .community-form { padding: 16px; }
 .community-upload { padding: 22px; margin-bottom: 14px; }
+.community-image-field {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 14px;
+    background: var(--bg-300);
+    border: 1px solid var(--b-1);
+    border-radius: var(--radius-md);
+}
+.community-image-spec {
+    display: grid;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+}
+.community-card-ratio {
+    aspect-ratio: 2 / 3;
+    border: 1px solid rgba(227,163,33,.35);
+    border-radius: var(--radius-sm);
+    background:
+        linear-gradient(135deg, rgba(227,163,33,.14), transparent),
+        var(--bg-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-4);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+}
+.community-image-spec strong {
+    display: block;
+    color: var(--text-1);
+    font-size: 13px;
+    margin-bottom: 3px;
+}
+.community-image-spec p {
+    color: var(--text-4);
+    font-size: 12px;
+    line-height: 1.45;
+}
+.community-image-field .upload-zone {
+    min-height: 128px;
+    background: var(--bg-200);
+}
+.community-image-field .upload-preview img {
+    width: 112px;
+    aspect-ratio: 2 / 3;
+    max-width: none;
+    object-fit: cover;
+}
 .community-featured {
     display: flex;
     align-items: center;
@@ -2106,6 +2165,17 @@ code.cmd {
     gap: 12px;
     padding: 16px 22px;
     border-bottom: 1px solid var(--b-1);
+    margin-left: calc(var(--reply-depth, 0) * 28px);
+    position: relative;
+}
+.proposal-reply[style*="--reply-depth: 1"],
+.proposal-reply[style*="--reply-depth: 2"],
+.proposal-reply[style*="--reply-depth: 3"],
+.proposal-reply[style*="--reply-depth: 4"],
+.proposal-reply[style*="--reply-depth: 5"],
+.proposal-reply[style*="--reply-depth: 6"] {
+    border-left: 2px solid var(--b-2);
+    background: rgba(255,255,255,.015);
 }
 .proposal-reply > img {
     width: 36px;
@@ -2115,6 +2185,7 @@ code.cmd {
 }
 .proposal-reply-head {
     display: flex;
+    align-items: center;
     gap: 8px;
     flex-wrap: wrap;
     margin-bottom: 5px;
@@ -2122,12 +2193,103 @@ code.cmd {
 }
 .proposal-reply-head a { color: var(--text-1); text-decoration: none; font-weight: 700; }
 .proposal-reply-head span { color: var(--text-5); }
+.proposal-reply-anchor {
+    color: var(--text-5) !important;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500 !important;
+}
 .proposal-reply-text { color: var(--text-3); line-height: 1.6; font-size: 14px; }
+.proposal-inline-reply {
+    margin-top: 10px;
+}
+.proposal-inline-reply summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-4);
+    font-size: 12px;
+    cursor: pointer;
+    user-select: none;
+}
+.proposal-inline-reply summary:hover { color: var(--text-1); }
+.proposal-inline-reply form {
+    display: grid;
+    gap: 8px;
+    margin-top: 8px;
+    max-width: 560px;
+}
 .proposal-reply-form {
     padding: 18px 22px;
     display: grid;
     gap: 10px;
 }
+.proposal-reply-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+.proposal-report-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 0;
+    background: transparent;
+    color: var(--text-5);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 2px 0;
+}
+.proposal-report-btn:hover { color: var(--red); }
+.proposal-report-details {
+    position: relative;
+}
+.proposal-report-details summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-5);
+    font-size: 12px;
+    cursor: pointer;
+    list-style: none;
+}
+.proposal-report-details summary::-webkit-details-marker { display: none; }
+.proposal-report-details summary:hover { color: var(--red); }
+.proposal-report-details form {
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: grid;
+    gap: 8px;
+    width: min(320px, calc(100vw - 32px));
+    padding: 10px;
+    background: var(--bg-300);
+    border: 1px solid var(--b-2);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    z-index: 1001;
+}
+.proposal-report-details[open]::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.62);
+    z-index: 1000;
+}
+.proposal-report-details textarea.form-control {
+    min-height: 68px;
+}
+.proposal-closed-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    color: var(--text-3);
+    background: rgba(242,63,67,.08);
+    border-bottom: 1px solid rgba(242,63,67,.16);
+}
+.proposal-closed-notice i { color: var(--red); }
 
 /* ============================================================
    FOOTER
@@ -2361,8 +2523,10 @@ code.cmd {
     .proposal-card { grid-template-columns: 82px minmax(0, 1fr); }
     .proposal-thumb-wrap,
     .proposal-thumb { width: 82px; }
+    .community-image-spec { grid-template-columns: 56px minmax(0, 1fr); }
     .community-toolbar { flex-direction: column; align-items: stretch; }
     .community-hero-stats { grid-template-columns: 1fr 1fr 1fr; }
+    .proposal-reply { margin-left: calc(var(--reply-depth, 0) * 12px); padding: 14px; }
 
     .footer-grid { grid-template-columns: 1fr; gap: 24px; }
     .footer-bottom { flex-direction: column; text-align: center; }

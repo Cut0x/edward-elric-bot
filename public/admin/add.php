@@ -63,11 +63,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $weight = RARITIES[$values['rarity']]['weight'];
-        dbExecute(
+        $cardId = dbExecute(
             'INSERT INTO cards (name, character_name, description, serie, rarity, rarity_weight, image_file, author_id, is_active)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [$values['name'], $values['character_name'], $values['description'],
              $values['serie'], $values['rarity'], $weight, $imageFile, $authorId, $values['is_active']]
+        );
+        enqueueActivityEvent(
+            'card_added',
+            $_SESSION['user_id'],
+            'Nouvelle carte ajoutée',
+            ($_SESSION['global_name'] ?? $_SESSION['username']) . ' a ajouté la carte : ' . $values['name'] . '.',
+            APP_URL . '/card.php?id=' . $cardId,
+            [
+                'card_id' => $cardId,
+                'image_file' => $imageFile,
+                'image_url' => cardImageUrl($imageFile),
+                'description' => clipReportText($values['description'], 1800),
+                'is_active' => (int)$values['is_active'],
+            ]
         );
         $_SESSION['admin_success'] = 'Carte « ' . $values['name'] . ' » créée avec succès !';
         header('Location: ' . APP_URL . '/admin/cards.php');

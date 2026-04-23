@@ -7,7 +7,7 @@ const { messageComponents } = require('../utils/components');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('profil')
-        .setDescription(`${EMOJIS.profile} Voir un profil de collectionneur`)
+        .setDescription('Voir un profil de collectionneur')
         .addUserOption(opt =>
             opt.setName('utilisateur')
                .setDescription('Voir le profil d\'un autre utilisateur')
@@ -32,8 +32,8 @@ module.exports = {
                 .map(key => `${RARITIES[key].stars}⭐ ${stats.rarityCounts[key] || 0}`)
                 .join(' · ');
             const profileUrl = process.env.APP_URL
-                ? `\n${EMOJIS.info} Profil web : ${process.env.APP_URL.replace(/\/$/, '')}/user.php?id=${target.id}`
-                : '';
+                ? `${process.env.APP_URL.replace(/\/$/, '')}/user.php?id=${target.id}`
+                : null;
 
             await interaction.editReply(messageComponents([
                 `## ${EMOJIS.profile} ${target.globalName || target.username}`,
@@ -45,8 +45,7 @@ module.exports = {
                 isSelf
                     ? `${EMOJIS.reroll} Rolls : **${stats.rollsLeft}/${MAX_DAILY_ROLLS}** · Total : **${stats.totalRolls}** · Doublons : **${stats.duplicates}**`
                     : `${EMOJIS.reroll} Rolls totaux : **${stats.totalRolls}** · Doublons : **${stats.duplicates}**`,
-                profileUrl,
-            ].join('\n')));
+            ].join('\n'), null, profileUrl));
         } catch (error) {
             console.error('[/profil] Erreur :', error);
             await interaction.editReply(messageComponents(`${EMOJIS.error} Une erreur est survenue.`));

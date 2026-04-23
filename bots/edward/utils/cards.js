@@ -2,19 +2,39 @@ const path      = require('path');
 const { query, queryOne, execute, getOrCreateUser } = require('./db');
 
 const MAX_DAILY_ROLLS = parseInt(process.env.MAX_DAILY_ROLLS || 10);
-const CARDS_DIR       = path.join(__dirname, '..', '..', 'cards');
+const CARDS_DIR       = path.join(__dirname, '..', '..', '..', 'cards');
 const XP_PER_ROLL     = parseInt(process.env.XP_PER_ROLL || 15);
 
 const RARITIES = {
-    commune:     { label: 'Commune',     color: 0x6b6b6b, emoji: '◆',     stars: 1, xp: 25  },
-    peu_commune: { label: 'Peu Commune', color: 0x27ae60, emoji: '◆◆',    stars: 2, xp: 50  },
-    rare:        { label: 'Rare',        color: 0x2980b9, emoji: '◆◆◆',   stars: 3, xp: 100 },
-    epique:      { label: 'Épique',      color: 0x8e44ad, emoji: '★★★★',  stars: 4, xp: 200 },
-    legendaire:  { label: 'Légendaire',  color: 0xf39c12, emoji: '✦✦✦✦✦', stars: 5, xp: 500 },
+    commune:     { label: 'Commune',     color: 0x6b6b6b, emoji: '◆',     stars: 1, xpMin: 20,  xpMax: 40  },
+    peu_commune: { label: 'Peu Commune', color: 0x27ae60, emoji: '◆◆',    stars: 2, xpMin: 45,  xpMax: 80  },
+    rare:        { label: 'Rare',        color: 0x2980b9, emoji: '◆◆◆',   stars: 3, xpMin: 90,  xpMax: 150 },
+    epique:      { label: 'Épique',      color: 0x8e44ad, emoji: '★★★★',  stars: 4, xpMin: 180, xpMax: 280 },
+    legendaire:  { label: 'Légendaire',  color: 0xf39c12, emoji: '✦✦✦✦✦', stars: 5, xpMin: 450, xpMax: 650 },
 };
 
 function xpToLevel(xp) {
     return Math.max(1, Math.floor(Math.sqrt(Math.max(0, xp) / 100)) + 1);
+}
+
+function randomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function randomXpReward(rarity, isDuplicate) {
+    if (isDuplicate) return randomInt(Math.max(5, Math.floor(XP_PER_ROLL / 2)), XP_PER_ROLL);
+    return XP_PER_ROLL + randomInt(rarity.xpMin, rarity.xpMax);
+}
+
+async function enqueueActivityEvent(type, userId, title, message, url = null, metadata = {}) {
+    try {
+        await execute(
+            'INSERT INTO activity_events (type, user_id, title, message, url, metadata_json) VALUES (?, ?, ?, ?, ?, ?)',
+            [type, userId, title, message, url, Object.keys(metadata).length ? JSON.stringify(metadata) : null]
+        );
+    } catch (error) {
+        console.warn('[activity_events] évènement ignoré :', error.message);
+    }
 }
 
 function selectByWeight(cards) {
@@ -62,7 +82,7 @@ async function rollCard(discordUser) {
         await execute('INSERT INTO user_cards (user_id, card_id) VALUES (?, ?)', [discordUser.id, card.id]);
     }
 
-    const xpGained = XP_PER_ROLL + (!isDuplicate ? rarity.xp : 0);
+    const xpGained = randomXpReward(rarity, isDuplicate);
     const currentUser = await queryOne('SELECT xp FROM users WHERE id = ?', [discordUser.id]);
     const newXp = parseInt(currentUser?.xp || 0) + xpGained;
     const newLevel = xpToLevel(newXp);
@@ -78,6 +98,43 @@ async function rollCard(discordUser) {
     );
 
     const updated = await queryOne('SELECT rolls_remaining FROM users WHERE id = ?', [discordUser.id]);
+    const ownedAfterRow = await queryOne('SELECT COUNT(*) as c FROM user_cards WHERE user_id = ?', [discordUser.id]);
+    const totalCardsRow = await queryOne('SELECT COUNT(*) as c FROM cards WHERE is_active = 1');
+    const ownedAfter = parseInt(ownedAfterRow?.c || 0);
+    const totalCards = parseInt(totalCardsRow?.c || 0);
+    const displayName = discordUser.globalName || discordUser.username;
+    const appUrl = (process.env.APP_URL || '').replace(/\/$/, '');
+
+    if (card.rarity === 'legendaire') {
+        await enqueueActivityEvent(
+            'legendary_roll',
+            discordUser.id,
+            'Roll légendaire',
+            `${displayName} vient de roll une carte légendaire : ${card.name}.`,
+            appUrl ? `${appUrl}/card.php?id=${card.id}` : null,
+            { card_id: card.id, rarity: card.rarity }
+        );
+    }
+    if (!isDuplicate && ownedAfter === 1) {
+        await enqueueActivityEvent(
+            'first_card',
+            discordUser.id,
+            'Première carte obtenue',
+            `${displayName} vient de trouver sa première carte : ${card.name}.`,
+            appUrl ? `${appUrl}/user.php?id=${discordUser.id}` : null,
+            { card_id: card.id }
+        );
+    }
+    if (!isDuplicate && totalCards > 0 && ownedAfter >= totalCards) {
+        await enqueueActivityEvent(
+            'collection_complete',
+            discordUser.id,
+            'Collection complète',
+            `${displayName} possède maintenant toutes les cartes disponibles.`,
+            appUrl ? `${appUrl}/user.php?id=${discordUser.id}` : null,
+            { owned: ownedAfter, total: totalCards }
+        );
+    }
 
     return {
         success:       true,

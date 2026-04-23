@@ -47,6 +47,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $imageFile,
             ]
         );
+        $imageUrl = $imageFile ? proposalImageUrl($imageFile) : null;
+        enqueueActivityEvent(
+            'community_post',
+            $_SESSION['user_id'],
+            'Nouvelle proposition communautaire',
+            ($_SESSION['global_name'] ?? $_SESSION['username']) . ' propose une nouvelle carte : ' . $values['name'] . '.',
+            APP_URL . '/proposal.php?id=' . $id,
+            [
+                'proposal_id' => $id,
+                'image_url' => $imageUrl,
+                'image_file' => $imageFile,
+                'description' => clipReportText($values['description'], 1800),
+            ]
+        );
         header('Location: ' . APP_URL . '/proposal.php?id=' . $id);
         exit;
     }
@@ -228,13 +242,24 @@ require_once __DIR__ . '/includes/header.php';
                         <label class="form-label">Description</label>
                         <textarea name="description" class="form-control" rows="5" required placeholder="Décrivez la scène, le style, ou mentionnez quelqu'un avec @pseudo."><?= h($values['description']) ?></textarea>
                     </div>
+                    <div class="community-image-field">
+                        <div class="community-image-spec">
+                            <div class="community-card-ratio">
+                                <span>2:3</span>
+                            </div>
+                            <div>
+                                <strong>Image optionnelle</strong>
+                                <p>Format carte vertical exact. Recommandé : 1000 x 1500 px. Les propositions avec image sont plus faciles à évaluer.</p>
+                            </div>
+                        </div>
                     <label class="upload-zone community-upload">
                         <input type="file" name="image" accept="image/*">
                         <i class="bi bi-image-fill upload-zone-icon"></i>
-                        <span class="upload-zone-text">Image optionnelle</span>
-                        <span class="upload-zone-hint">Format carte 2:3 exact · idéal 1000 x 1500 px · max 5 Mo</span>
+                        <span class="upload-zone-text">Déposer ou choisir une image</span>
+                        <span class="upload-zone-hint">JPG, PNG, GIF, WEBP · max 5 Mo</span>
                     </label>
                     <div class="upload-preview"></div>
+                    </div>
                     <button class="btn-gold w-full" type="submit"><i class="bi bi-send-fill"></i> Publier</button>
                 </form>
             <?php endif; ?>

@@ -174,8 +174,8 @@ require_once __DIR__ . '/includes/header.php';
         <div class="card-grid">
             <?php foreach ($data['cards'] as $card): ?>
                 <a href="<?= APP_URL ?>/card.php?id=<?= $card['id'] ?>"
-                   class="card-item rarity-<?= h($card['rarity']) ?>">
-                    <div class="card-image-wrap" style="<?= !$card['owned'] ? 'filter:saturate(.3);opacity:.55;' : '' ?>">
+                   class="card-item rarity-<?= h($card['rarity']) ?> <?= !$card['owned'] ? 'is-locked' : '' ?>">
+                    <div class="card-image-wrap">
                         <?php if ($card['image_file']): ?>
                             <img class="card-thumbnail"
                                  src="<?= h(cardImageUrl($card['image_file'])) ?>"

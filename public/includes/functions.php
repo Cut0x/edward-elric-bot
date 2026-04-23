@@ -14,6 +14,10 @@ function proposalImageUrl(string $imageFile): string {
     return PROPOSALS_URL . '/' . rawurlencode($imageFile);
 }
 
+function clipReportText(string $text, int $length): string {
+    return function_exists('mb_substr') ? mb_substr($text, 0, $length) : substr($text, 0, $length);
+}
+
 function rarityLabel(string $rarity): string {
     return RARITIES[$rarity]['label'] ?? ucfirst($rarity);
 }
@@ -59,6 +63,79 @@ function textExcerpt(?string $text, int $width = 160): string {
         return mb_strimwidth($text, 0, $width, '...', 'UTF-8');
     }
     return strlen($text) > $width ? substr($text, 0, max(0, $width - 3)) . '...' : $text;
+}
+
+function enqueueActivityEvent(string $type, ?string $userId, string $title, string $message, ?string $url = null, array $metadata = []): void {
+    try {
+        dbExecute(
+            'INSERT INTO activity_events (type, user_id, title, message, url, metadata_json) VALUES (?, ?, ?, ?, ?, ?)',
+            [$type, $userId, $title, $message, $url, $metadata ? json_encode($metadata, JSON_UNESCAPED_UNICODE) : null]
+        );
+    } catch (Exception) {
+        // L'activité ne doit jamais bloquer le site.
+    }
+}
+
+function xpRewardRange(string $rarity): array {
+    return match ($rarity) {
+        'legendaire'  => [450, 650],
+        'epique'      => [180, 280],
+        'rare'        => [90, 150],
+        'peu_commune' => [45, 80],
+        default       => [20, 40],
+    };
+}
+
+function randomXpReward(string $rarity, bool $isDuplicate = false): int {
+    if ($isDuplicate) return random_int(max(5, (int)(XP_PER_ROLL / 2)), XP_PER_ROLL);
+    [$min, $max] = xpRewardRange($rarity);
+    return XP_PER_ROLL + random_int($min, $max);
+}
+
+function createDraftCardFromProposal(array $proposal): int {
+    $rarity = $proposal['rarity'] && array_key_exists($proposal['rarity'], RARITIES) ? $proposal['rarity'] : 'commune';
+    $weight = RARITIES[$rarity]['weight'];
+    $imageFile = '';
+
+    if (!empty($proposal['image_file']) && file_exists(PROPOSALS_DIR . $proposal['image_file'])) {
+        if (!is_dir(CARDS_DIR)) mkdir(CARDS_DIR, 0755, true);
+        $ext = strtolower(pathinfo($proposal['image_file'], PATHINFO_EXTENSION));
+        $slug = preg_replace('/[^a-z0-9]+/', '-', strtolower($proposal['name']));
+        $imageFile = $slug . '-proposal-' . uniqid() . '.' . $ext;
+        copy(PROPOSALS_DIR . $proposal['image_file'], CARDS_DIR . $imageFile);
+    }
+
+    $cardId = dbExecute(
+        'INSERT INTO cards (name, character_name, description, serie, rarity, rarity_weight, image_file, author_id, is_active)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)',
+        [
+            $proposal['name'],
+            $proposal['character_name'],
+            $proposal['description'],
+            $proposal['serie'],
+            $rarity,
+            $weight,
+            $imageFile,
+            $proposal['user_id'],
+        ]
+    );
+
+    enqueueActivityEvent(
+        'card_added',
+        $proposal['user_id'] ? (string)$proposal['user_id'] : null,
+        'Carte ajoutée en brouillon',
+        'La proposition ' . $proposal['name'] . ' a été transformée en carte non publique.',
+        APP_URL . '/admin/edit.php?id=' . $cardId,
+        [
+            'card_id' => $cardId,
+            'image_file' => $imageFile,
+            'image_url' => $imageFile ? cardImageUrl($imageFile) : null,
+            'description' => clipReportText($proposal['description'] ?? '', 1800),
+            'is_active' => 0,
+        ]
+    );
+
+    return $cardId;
 }
 
 function saveProposalImage(array $file, array &$errors): ?string {
@@ -331,7 +408,7 @@ function rollCardForUser(string $userId): array {
         dbExecute('INSERT INTO user_cards (user_id, card_id) VALUES (?, ?)', [$userId, $card['id']]);
     }
 
-    $xpGained = XP_PER_ROLL + (!$isDuplicate ? (XP_REWARDS[$card['rarity']] ?? 0) : 0);
+    $xpGained = randomXpReward($card['rarity'], $isDuplicate);
     $newXp = (int)($user['xp'] ?? 0) + $xpGained;
     $newLevel = xpToLevel($newXp);
 
@@ -345,6 +422,40 @@ function rollCardForUser(string $userId): array {
     );
 
     $updated = dbQueryOne('SELECT rolls_remaining FROM users WHERE id = ?', [$userId]);
+    $displayName = $_SESSION['global_name'] ?? $_SESSION['username'] ?? 'Un joueur';
+    $ownedAfter = (int)(dbQueryOne('SELECT COUNT(*) as c FROM user_cards WHERE user_id = ?', [$userId])['c'] ?? 0);
+    $totalCards = (int)(dbQueryOne('SELECT COUNT(*) as c FROM cards WHERE is_active = 1')['c'] ?? 0);
+
+    if ($card['rarity'] === 'legendaire') {
+        enqueueActivityEvent(
+            'legendary_roll',
+            $userId,
+            'Roll légendaire',
+            $displayName . ' vient de roll une carte légendaire : ' . $card['name'] . '.',
+            APP_URL . '/card.php?id=' . $card['id'],
+            ['card_id' => $card['id'], 'rarity' => $card['rarity']]
+        );
+    }
+    if (!$isDuplicate && $ownedAfter === 1) {
+        enqueueActivityEvent(
+            'first_card',
+            $userId,
+            'Première carte obtenue',
+            $displayName . ' vient de trouver sa première carte : ' . $card['name'] . '.',
+            APP_URL . '/user.php?id=' . $userId,
+            ['card_id' => $card['id']]
+        );
+    }
+    if (!$isDuplicate && $totalCards > 0 && $ownedAfter >= $totalCards) {
+        enqueueActivityEvent(
+            'collection_complete',
+            $userId,
+            'Collection complète',
+            $displayName . ' possède maintenant toutes les cartes disponibles.',
+            APP_URL . '/user.php?id=' . $userId,
+            ['owned' => $ownedAfter, 'total' => $totalCards]
+        );
+    }
 
     return [
         'success' => true,

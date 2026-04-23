@@ -93,7 +93,7 @@ require_once __DIR__ . '/includes/header.php';
                 $isOwned = isLoggedIn() && in_array((int)$card['id'], $ownedIds, true);
             ?>
                 <a href="<?= APP_URL ?>/card.php?id=<?= $card['id'] ?>"
-                   class="card-item rarity-<?= h($card['rarity']) ?>">
+                   class="card-item rarity-<?= h($card['rarity']) ?> <?= isLoggedIn() && !$isOwned ? 'is-locked' : '' ?>">
                     <div class="card-image-wrap">
                         <?php if ($card['image_file']): ?>
                             <img class="card-thumbnail"
@@ -105,6 +105,8 @@ require_once __DIR__ . '/includes/header.php';
                         <div class="card-rarity-tag <?= h($card['rarity']) ?>"><?= h(rarityLabel($card['rarity'])) ?></div>
                         <?php if ($isOwned): ?>
                             <div class="card-owned-check"><i class="bi bi-check2"></i></div>
+                        <?php elseif (isLoggedIn()): ?>
+                            <div class="card-locked"><i class="bi bi-lock-fill"></i></div>
                         <?php endif; ?>
                     </div>
                     <div class="card-info">

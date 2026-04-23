@@ -1,5 +1,8 @@
 const {
+    ActionRowBuilder,
     AttachmentBuilder,
+    ButtonBuilder,
+    ButtonStyle,
     ContainerBuilder,
     MediaGalleryBuilder,
     MediaGalleryItemBuilder,
@@ -12,7 +15,7 @@ function textComponent(content) {
     return new TextDisplayBuilder().setContent(content);
 }
 
-function messageComponents(content, image = null) {
+function messageComponents(content, image = null, linkUrl = null) {
     const container = new ContainerBuilder().addTextDisplayComponents(textComponent(content));
     const files = [];
 
@@ -21,6 +24,17 @@ function messageComponents(content, image = null) {
         container.addMediaGalleryComponents(
             new MediaGalleryBuilder().addItems(
                 new MediaGalleryItemBuilder().setURL(`attachment://${image.name}`)
+            )
+        );
+    }
+
+    if (linkUrl) {
+        container.addActionRowComponents(
+            new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+                    .setLabel('Allez au site')
+                    .setStyle(ButtonStyle.Link)
+                    .setURL(linkUrl)
             )
         );
     }
